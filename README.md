@@ -75,6 +75,7 @@ From there you can [install the firmware](https://geo-tp.github.io/ESP32-Bit-Pir
 | **Heltec Vision Master T190** | ![Photo of the Heltec Vision Master T190](/images/heltec-t190_s.png) | 15 GPIO (Header, Qwiiic), screen, 2 buttons, SX1262 LoRa |
 | **Seeed Studio Xiao S3** | ![Photo of the Seeed Studio Xiao ESP32-S3](/images/xiaos3_s.jpg)        | 9 GPIO (exposed pins), 1 button |
 | **Waveshare ESP32-S3-GEEK** | ![Photo of the Waveshare ESP32-S3-GEEK](/images/waveshare-s3-geek_s.jpg) | 7 GPIO (Dupont header), screen, 1 button, SD card |
+| **ESP32-S3-DevKitC-1 N16R8 + ST7789 + EC11** |  | Dupont setup: external ST7789 240x280 SPI screen and EC11 encoder (T-Embed pin map), screen UI + encoder navigation |
 
 - **Other ESP32-S3-based Boards**
 
