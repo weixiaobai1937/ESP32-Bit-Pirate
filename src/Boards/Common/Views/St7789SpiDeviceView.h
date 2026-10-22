@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101) || defined(DEVICE_VISION_MASTER_T190) || (defined(DEVICE_CUSTOM) && defined(CUSTOM_DISPLAY_DRIVER_ST7789_SPI))
+#if defined(DEVICE_TEMBEDS3) || defined(DEVICE_TEMBEDS3CC1101) || defined(DEVICE_VISION_MASTER_T190) || defined(DEVICE_S3DEVKIT_LCD) || (defined(DEVICE_CUSTOM) && defined(CUSTOM_DISPLAY_DRIVER_ST7789_SPI))
 
 #include "Interfaces/IDeviceView.h"
 #include "States/GlobalState.h"
