@@ -1,5 +1,6 @@
 #include "LedService.h"
 #include <FastLED.h>
+#include <cstring>
 #include <Enums/LedProtocolEnum.h>
 #include <Enums/LedChipsetEnum.h>
 
@@ -28,7 +29,9 @@ void LedService::configure(uint8_t dataPin, uint8_t clockPin, uint16_t length,
     ledCount = length;
 
     // Clean leds buffer
-    memset(leds, 0, sizeof(CRGB) * MAX_LEDS);
+    // 注意：必须用 std:: 限定。FastLED 3.10 起 CRGB 是 fl::CRGB 的别名，
+    // 未限定的 memset() 会因 ADL 同时匹配 ::memset 与 fl::memset 而二义。
+    std::memset(leds, 0, sizeof(CRGB) * MAX_LEDS);
     FastLED.clear();
     FastLED.clearData();
 
