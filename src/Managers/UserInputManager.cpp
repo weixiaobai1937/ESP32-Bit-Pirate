@@ -1,4 +1,5 @@
 #include "UserInputManager.h"
+#include "Services/LanguageService.h"
 
 std::string UserInputManager::getLine(bool onlyNumber /* = false */) {
     std::string result;
@@ -99,7 +100,7 @@ std::string UserInputManager::readSanitizedString(const std::string& label,
                                                   bool onlyLetter /* = false */)
 {
     while (true) {
-        terminalView.print(label + " [" + def + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + def + "]: ");
         std::string input = getLine(false);
 
         // ENTER ret default
@@ -140,7 +141,7 @@ std::string UserInputManager::readString(const std::string& label,
                                          const std::string& def)
 {
     // Print prompt
-    terminalView.print(label);
+    terminalView.print(LanguageService::translate(label));
 
     if (!def.empty()) {
         terminalView.print(" [" + def + "]");
@@ -172,7 +173,7 @@ std::string UserInputManager::readValidatedPhoneNumber(const std::string& label,
     }
 
     while (true) {
-        terminalView.print(label + ": ");
+        terminalView.print(LanguageService::translate(label) + ": ");
         std::string input = getLine();
 
         // Allow empty input
@@ -209,7 +210,7 @@ std::string UserInputManager::readValidatedPhoneNumber(const std::string& label,
 
 uint8_t UserInputManager::readValidatedUint8(const std::string& label, uint8_t def, uint8_t min, uint8_t max) {
     while (true) {
-        terminalView.print(label + " [" + std::to_string(def) + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + std::to_string(def) + "]: ");
         std::string input = getLine();
         if (input.empty()) return def;
 
@@ -232,9 +233,9 @@ uint16_t UserInputManager::readValidatedUint16(const std::string& label, uint16_
         if (hex) {
             std::string hint = (label.find("dec or") == std::string::npos && label.find("0x") == std::string::npos)
                 ? " (dec or 0x hex)" : "";
-            terminalView.print(label + hint + " [0x" + argTransformer.toHex(def, 4) + "]: ");
+            terminalView.print(LanguageService::translate(label) + hint + " [0x" + argTransformer.toHex(def, 4) + "]: ");
         } else {
-            terminalView.print(label + " [" + std::to_string(def) + "]: ");
+            terminalView.print(LanguageService::translate(label) + " [" + std::to_string(def) + "]: ");
         }
         std::string input = getLine();
         if (input.empty()) return def;
@@ -253,9 +254,9 @@ uint32_t UserInputManager::readValidatedUint32(const std::string& label, uint32_
         if (hex) {
             std::string hint = (label.find("dec or") == std::string::npos && label.find("0x") == std::string::npos)
                 ? " (dec or 0x hex)" : "";
-            terminalView.print(label + hint + " [0x" + argTransformer.toHex(def) + "]: ");
+            terminalView.print(LanguageService::translate(label) + hint + " [0x" + argTransformer.toHex(def) + "]: ");
         } else {
-            terminalView.print(label + " [" + std::to_string(def) + "]: ");
+            terminalView.print(LanguageService::translate(label) + " [" + std::to_string(def) + "]: ");
         }
         std::string input = getLine();
         if (input.empty()) return def;
@@ -314,9 +315,9 @@ uint8_t UserInputManager::readValidatedByte(const std::string& label,
 {
     while (true) {
         if (showHex) {
-            terminalView.print(label + " (dec or 0x hex) [0x" + argTransformer.toHex(def) + "]: ");
+            terminalView.print(LanguageService::translate(label) + " (dec or 0x hex) [0x" + argTransformer.toHex(def) + "]: ");
         } else {
-            terminalView.print(label + " [" + std::to_string(def) + "]: ");
+            terminalView.print(LanguageService::translate(label) + " [" + std::to_string(def) + "]: ");
         }
 
         std::string input = getLine();
@@ -342,7 +343,7 @@ uint8_t UserInputManager::readValidatedByte(const std::string& label,
 
 char UserInputManager::readCharChoice(const std::string& label, char def, const std::vector<char>& allowed) {
     while (true) {
-        terminalView.print(label + " [" + def + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + def + "]: ");
         std::string input = getLine();
         if (input.empty()) return def;
 
@@ -355,7 +356,7 @@ char UserInputManager::readCharChoice(const std::string& label, char def, const 
 
 bool UserInputManager::readYesNo(const std::string& label, bool def) {
     while (true) {
-        terminalView.print(label + " [" + (def ? "y" : "n") + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + (def ? "y" : "n") + "]: ");
         std::string input = getLine();
         if (input.empty()) return def;
 
@@ -449,7 +450,7 @@ std::vector<uint8_t> UserInputManager::readValidatedPinGroup(
         }
         
         // Display default list [1 2 3 ...]
-        terminalView.print(label + " [" + defaultStr + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + defaultStr + "]: ");
 
         // Get user input
         std::string input = getLine();
@@ -497,7 +498,7 @@ std::string UserInputManager::readValidatedHexString(
     size_t digitsPerItem /* = 2 */)
 {
     while (true) {
-        terminalView.print(label + "(hex): ");
+        terminalView.print(LanguageService::translate(label) + "(hex): ");
         std::string input = getLine();
 
         // Remove space
@@ -549,7 +550,7 @@ std::string UserInputManager::readValidatedHexString(
 
 uint16_t UserInputManager::readValidatedCanId(const std::string& label, uint16_t defaultValue) {
     while (true) {
-        terminalView.print(label + " (hex, max 3 digits) [default: " + argTransformer.toHex(defaultValue, 3) + "]: ");
+        terminalView.print(LanguageService::translate(label) + " (hex, max 3 digits) [default: " + argTransformer.toHex(defaultValue, 3) + "]: ");
         std::string input = getLine();
 
         if (input.empty()) return defaultValue;
@@ -603,10 +604,10 @@ uint16_t UserInputManager::readValidatedCanId(const std::string& label, uint16_t
 
 int UserInputManager::readValidatedChoiceIndex(const std::string& label, const std::vector<std::string>& choices, int defaultIndex) {
     // Display choices
-    terminalView.println(label + ":");
+    terminalView.println(LanguageService::translate(label) + ":");
     for (size_t i = 0; i < choices.size(); ++i) {
         std::string prefix = (i == defaultIndex) ? "*" : " ";
-        terminalView.println("  [" + std::to_string(i + 1) + "] " + prefix + choices[i]);
+        terminalView.println("  [" + std::to_string(i + 1) + "] " + prefix + LanguageService::translate(choices[i]));
     }
 
     // Ask for index
@@ -629,7 +630,7 @@ int UserInputManager::readValidatedChoiceIndex(const std::string& label, const s
 
 int UserInputManager::readValidatedInt(const std::string& label, int def, int min /* = -127 */, int max /* = 127 */) {
     while (true) {
-        terminalView.print(label + " [" + std::to_string(def) + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + std::to_string(def) + "]: ");
         std::string input = getLine();
         if (input.empty()) return def;
 
@@ -679,7 +680,7 @@ int UserInputManager::readValidatedChoiceIndex(const std::string& label,
         defaultIndex = 0;
     }
 
-    terminalView.println(label + ":");
+    terminalView.println(LanguageService::translate(label) + ":");
     for (size_t i = 0; i < count; ++i) {
         const char* s = choices[i] ? choices[i] : "";
         const bool isDef = ((int)i == defaultIndex);
@@ -687,7 +688,7 @@ int UserInputManager::readValidatedChoiceIndex(const std::string& label,
         terminalView.println(
             "  [" + std::to_string(i + 1) + "] " +
             std::string(isDef ? "* " : "  ") +
-            s
+            LanguageService::translate(std::string(s))
         );
     }
 
@@ -710,7 +711,7 @@ float UserInputManager::readValidatedFloat(const std::string& label,
                                            float min,
                                            float max) {
     while (true) {
-        terminalView.print(label + " [" + std::to_string(def) + "]: ");
+        terminalView.print(LanguageService::translate(label) + " [" + std::to_string(def) + "]: ");
         std::string input = getLine();
         if (input.empty()) return def;
 

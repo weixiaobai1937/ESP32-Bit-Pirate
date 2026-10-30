@@ -26,6 +26,7 @@ private:
     esp_err_t handleRootRequest(httpd_req_t *req);
     esp_err_t handleCssRequest(httpd_req_t *req);
     esp_err_t handleJsRequest(httpd_req_t *req);
+    esp_err_t handleLanguageRequest(httpd_req_t *req);
     esp_err_t handleCaptivePortalRequest(httpd_req_t *req);
     esp_err_t handleLittlefsList(httpd_req_t *req);
     esp_err_t handleLittlefsDelete(httpd_req_t *req);

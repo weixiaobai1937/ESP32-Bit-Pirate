@@ -78,7 +78,7 @@ DependencyProvider::DependencyProvider(ITerminalView &terminalView, IDeviceView 
       i2cEepromShell(terminalView, terminalInput, i2cService, argTransformer, userInputManager, binaryAnalyzer),
       uartAtShell(terminalView, terminalInput, utilityService, userInputManager, argTransformer, uartService),
       threeWireEepromShell(terminalView, terminalInput, userInputManager, threeWireService, argTransformer),
-      sysInfoShell(terminalView, terminalInput, deviceView, userInputManager, argTransformer, systemService, littleFsService, wifiService),
+      sysInfoShell(terminalView, terminalInput, deviceView, userInputManager, argTransformer, systemService, littleFsService, wifiService, nvsService),
       modbusShell(terminalView, terminalInput, utilityService, argTransformer, userInputManager, modbusService),
       oneWireEepromShell(terminalView, terminalInput, oneWireService, argTransformer, userInputManager, binaryAnalyzer),
       guideShell(terminalView, terminalInput, userInputManager),

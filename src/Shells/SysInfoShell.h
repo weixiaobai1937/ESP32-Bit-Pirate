@@ -6,6 +6,7 @@
 #include "Interfaces/IInput.h"
 #include "Interfaces/IDeviceView.h"
 #include "Interfaces/IShell.h"
+#include "Interfaces/INvsService.h"
 #include "Managers/UserInputManager.h"
 #include "Transformers/ArgTransformer.h"
 #include "Services/SystemService.h"
@@ -22,7 +23,8 @@ public:
                  ArgTransformer& argTransformer,
                  SystemService& systemService,
                  LittleFsService& littleFsService,
-                 WifiService& wifiService);
+                 WifiService& wifiService,
+                 INvsService& nvsService);
 
     void run() override;
 
@@ -39,6 +41,7 @@ private:
         "  🐞 Debug",
         " 🔄 Reboot",
         " 🔌 Bootloader",
+        " 🌐 Language",
         " 🚪 Exit"
     };
 
@@ -85,6 +88,7 @@ private:
     void cmdDebugLogs();
     void cmdReboot(bool hard = false);
     void cmdUsbBootloaderMode();
+    void cmdLanguage();
 
     void fsListFiles();
     void fsDeleteFile();
@@ -98,5 +102,6 @@ private:
     SystemService&     systemService;
     LittleFsService&   littleFsService;
     WifiService&       wifiService;
+    INvsService&       nvsService;
     GlobalState&       state = GlobalState::getInstance();
 };

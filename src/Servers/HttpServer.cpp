@@ -1,4 +1,5 @@
 #include "HttpServer.h"
+#include <States/GlobalState.h>
 
 void HttpServer::setupRoutes() {
     // Page HTML
@@ -33,6 +34,17 @@ void HttpServer::setupRoutes() {
     };
     js_uri.user_ctx = this;
     httpd_register_uri_handler(server, &js_uri);
+
+    // UI language for the Web UI / AI assistant
+    static httpd_uri_t language_uri;
+    language_uri.uri = "/language";
+    language_uri.method = HTTP_GET;
+    language_uri.handler = [](httpd_req_t *req) -> esp_err_t {
+        HttpServer* self = static_cast<HttpServer*>(req->user_ctx);
+        return self->handleLanguageRequest(req);
+    };
+    language_uri.user_ctx = this;
+    httpd_register_uri_handler(server, &language_uri);
 
     // Mount for routes LittleFS
     littleFsService.begin(/*formatIfFail=*/true, /*readOnly=*/false);
@@ -118,6 +130,14 @@ esp_err_t HttpServer::handleCssRequest(httpd_req_t *req) {
 esp_err_t HttpServer::handleJsRequest(httpd_req_t *req) {
     httpd_resp_set_type(req, "application/javascript");
     return httpd_resp_send(req, (const char*)scripts_js, strlen((const char*)scripts_js));
+}
+
+esp_err_t HttpServer::handleLanguageRequest(httpd_req_t *req) {
+    const char* code = LanguageEnumMapper::code(GlobalState::getInstance().getLanguage());
+    const std::string payload = std::string("{\"language\":\"") + code + "\"}";
+    httpd_resp_set_type(req, "application/json; charset=utf-8");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    return httpd_resp_send(req, payload.c_str(), HTTPD_RESP_USE_STRLEN);
 }
 
 esp_err_t HttpServer::handleCaptivePortalRequest(httpd_req_t *req) {

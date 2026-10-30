@@ -5,6 +5,8 @@ std::string WifiTypeConfigurator::configure(TerminalTypeEnum& terminalType) {
     switch (terminalType)
     {
     case TerminalTypeEnum::WiFiClient:
+        // The Web UI is latency-sensitive; modem sleep causes 100ms-1s stalls.
+        WiFi.setSleep(false);
         #if defined(DEVICE_CARDPUTER)
             // Use this standalone setup for now
             setupCardputerWifi(); // endless loop until a valid WiFi is selected and connected

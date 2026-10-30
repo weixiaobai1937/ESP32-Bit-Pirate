@@ -5,16 +5,19 @@ inline const char* scripts_js = R"rawliteral(
    CONFIG
    ========================================================= */
 
-// Gemini model
-const GEMINI_MODEL = "gemini-3-flash-preview";
+// DeepSeek model
+const DEEPSEEK_MODEL = "deepseek-chat";
 
 // Local storage key
-const GEMINI_API_KEY_STORAGE_KEY = "gemini_api_key";
+const DEEPSEEK_API_KEY_STORAGE_KEY = "deepseek_api_key";
+
+// Device UI language, refreshed from /language before each AI request.
+let deviceLanguage = (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
 
 // Delay window where typed echo is likely to appear
 const ECHO_FILTER_WINDOW_MS = 4000;
 
-const GEMINI_TRANSLATOR_CONTEXT = `
+const DEEPSEEK_TRANSLATOR_CONTEXT = `
 You are a command translator for a custom ESP32 Bit Pirate-style firmware.
 
 Your job is to convert natural language into exact firmware commands.
@@ -841,27 +844,27 @@ function closeAiPanel() {
 }
 
 /* =========================================================
-   GEMINI API KEY MANAGEMENT
+   DEEPSEEK API KEY MANAGEMENT
    ========================================================= */
 
-function getStoredGeminiApiKey() {
+function getStoredDeepSeekApiKey() {
   try {
-    return safeTrim(localStorage.getItem(GEMINI_API_KEY_STORAGE_KEY) || "");
+    return safeTrim(localStorage.getItem(DEEPSEEK_API_KEY_STORAGE_KEY) || "");
   } catch (_) {
     return "";
   }
 }
 
-function getGeminiApiKey() {
-  return getStoredGeminiApiKey();
+function getDeepSeekApiKey() {
+  return getStoredDeepSeekApiKey();
 }
 
-function hasGeminiApiKey() {
-  return !!getGeminiApiKey();
+function hasDeepSeekApiKey() {
+  return !!getDeepSeekApiKey();
 }
 
-function saveGeminiApiKeyToStorage() {
-  const input = byId("gemini-api-key");
+function saveDeepSeekApiKeyToStorage() {
+  const input = byId("deepseek-api-key");
   const key = safeTrim(input?.value);
 
   if (!key) {
@@ -870,7 +873,7 @@ function saveGeminiApiKeyToStorage() {
   }
 
   try {
-    localStorage.setItem(GEMINI_API_KEY_STORAGE_KEY, key);
+    localStorage.setItem(DEEPSEEK_API_KEY_STORAGE_KEY, key);
     setAiStatus("API key saved locally in this browser.", "success");
     closeApiKeyModal();
   } catch (err) {
@@ -881,10 +884,10 @@ function saveGeminiApiKeyToStorage() {
   updateApiKeyStatusDot();
 }
 
-function clearGeminiApiKeyFromStorage() {
+function clearDeepSeekApiKeyFromStorage() {
   try {
-    localStorage.removeItem(GEMINI_API_KEY_STORAGE_KEY);
-    const input = byId("gemini-api-key");
+    localStorage.removeItem(DEEPSEEK_API_KEY_STORAGE_KEY);
+    const input = byId("deepseek-api-key");
     if (input) input.value = "";
     setAiStatus("Stored API key cleared.", "success");
   } catch (err) {
@@ -898,13 +901,13 @@ function clearGeminiApiKeyFromStorage() {
 function openApiKeyModal() {
   const overlay = byId("api-key-overlay");
   const modal = byId("api-key-modal");
-  const input = byId("gemini-api-key");
+  const input = byId("deepseek-api-key");
 
   if (overlay) overlay.style.display = "block";
   if (modal) modal.style.display = "block";
 
   if (input && !safeTrim(input.value)) {
-    input.value = getStoredGeminiApiKey();
+    input.value = getStoredDeepSeekApiKey();
   }
 
   setTimeout(() => input?.focus(), 0);
@@ -919,7 +922,7 @@ function closeApiKeyModal() {
 }
 
 /* =========================================================
-   GEMINI UI HELPERS
+   DEEPSEEK UI HELPERS
    ========================================================= */
 
 function setAiStatus(message, type = "info") {
@@ -942,7 +945,7 @@ function updateApiKeyStatusDot() {
   const dot = byId("api-status-dot");
   if (!dot) return;
 
-  const key = getGeminiApiKey();
+  const key = getDeepSeekApiKey();
 
   if (key && key.length > 10) {
     dot.classList.add("ready");
@@ -1021,12 +1024,32 @@ async function copyToClipboard(text) {
 }
 
 /* =========================================================
-   GEMINI REQUEST / RESPONSE
+   DEEPSEEK REQUEST / RESPONSE
    ========================================================= */
 
-function buildGeminiUserPrompt(userText) {
+async function loadDeviceLanguage() {
+  try {
+    const response = await fetch("/language", { cache: "no-store" });
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const code = safeTrim(data?.language).toLowerCase();
+
+    if (code === "zh" || code === "en") {
+      deviceLanguage = code;
+    }
+  } catch (_) {
+    // Keep the fallback if the endpoint is unavailable.
+  }
+}
+
+function buildDeepSeekUserPrompt(userText) {
+  const languageRule = deviceLanguage === "zh"
+    ? "请用简体中文填写 user_intent、label、description 和 notes；command 和 steps 必须保持固件 CLI 英文原样。"
+    : "Write user_intent, label, description and notes in English; keep command and steps exactly as firmware CLI syntax.";
+
   return `
-Translate the following user request into firmware command suggestions.
+${languageRule}
 
 User request:
 ${userText}
@@ -1035,43 +1058,38 @@ Return ONLY valid JSON.
 `.trim();
 }
 
-async function callGeminiTranslate(userText) {
-  const apiKey = getGeminiApiKey();
+async function callDeepSeekTranslate(userText) {
+  const apiKey = getDeepSeekApiKey();
 
   if (!apiKey) {
     openApiKeyModal();
-    throw new Error("Missing Gemini API key.");
+    throw new Error("Missing DeepSeek API key.");
   }
 
-  const endpoint =
-    "https://generativelanguage.googleapis.com/v1beta/models/" +
-    encodeURIComponent(GEMINI_MODEL) +
-    ":generateContent";
+  const endpoint = "https://api.deepseek.com/chat/completions";
+
+  await loadDeviceLanguage();
+
+  const languageRule = deviceLanguage === "zh"
+    ? "IMPORTANT: The device UI language is Simplified Chinese. You MUST write user_intent, label, description and notes in Simplified Chinese. Do not answer in English. Keep command and steps exactly as firmware CLI syntax; never translate command names, arguments, protocol names, or pin names."
+    : "IMPORTANT: The device UI language is English. Write user_intent, label, description and notes in English. Keep command and steps exactly as firmware CLI syntax.";
 
   const payload = {
-    systemInstruction: {
-      parts: [
-        { text: GEMINI_TRANSLATOR_CONTEXT }
-      ]
-    },
-    contents: [
-      {
-        parts: [
-          { text: buildGeminiUserPrompt(userText) }
-        ]
-      }
+    model: DEEPSEEK_MODEL,
+    messages: [
+      { role: "system", content: DEEPSEEK_TRANSLATOR_CONTEXT },
+      { role: "system", content: languageRule },
+      { role: "user", content: buildDeepSeekUserPrompt(userText) }
     ],
-    generationConfig: {
-      temperature: 0.1,
-      responseMimeType: "application/json"
-    }
+    temperature: 0.1,
+    response_format: { type: "json_object" }
   };
 
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-goog-api-key": apiKey
+      "Authorization": "Bearer " + apiKey
     },
     body: JSON.stringify(payload)
   });
@@ -1086,27 +1104,10 @@ async function callGeminiTranslate(userText) {
       errorText = await response.text().catch(() => "");
     }
 
-    // Handle 429 (quota)
     if (response.status === 429) {
-      let retrySeconds = null;
-
-      try {
-        const retry = errorJson?.error?.details?.find(
-          d => d["@type"]?.includes("RetryInfo")
-        );
-        if (retry?.retryDelay) {
-          retrySeconds = parseInt(retry.retryDelay);
-        }
-      } catch (_) {}
-
-      const msg = retrySeconds
-        ? `Quota reached. Retry in ~${retrySeconds}s.`
-        : `Daily quota reached. Try again later.`;
-
-      throw new Error(msg);
+      throw new Error("Rate limit reached. Try again later.");
     }
 
-    // Handle other API errors
     const apiMessage =
       errorJson?.error?.message ||
       errorText ||
@@ -1117,13 +1118,8 @@ async function callGeminiTranslate(userText) {
   return await response.json();
 }
 
-function extractGeminiText(apiResponse) {
-  return (
-    apiResponse?.candidates?.[0]?.content?.parts
-      ?.map(part => part?.text || "")
-      .join("")
-      .trim() || ""
-  );
+function extractDeepSeekText(apiResponse) {
+  return safeTrim(apiResponse?.choices?.[0]?.message?.content || "");
 }
 
 function tryParseJson(text) {
@@ -1164,7 +1160,7 @@ function normalizeAiResponse(parsed) {
       const command = safeTrim(item?.command) || (steps.length ? steps.join(" || ") : "");
 
       return {
-        label: safeTrim(item?.label) || "Suggested command",
+        label: safeTrim(item?.label) || (deviceLanguage === "zh" ? "建议命令" : "Suggested command"),
         command,
         steps,
         description: safeTrim(item?.description)
@@ -1187,13 +1183,13 @@ async function translateWithAi() {
   setAiLoading();
 
   try {
-    const apiResponse = await callGeminiTranslate(userText);
-    const rawText = extractGeminiText(apiResponse);
+    const apiResponse = await callDeepSeekTranslate(userText);
+    const rawText = extractDeepSeekText(apiResponse);
     const parsed = tryParseJson(rawText);
 
     if (!parsed) {
-      console.warn("[Gemini] Raw response:", rawText);
-      throw new Error("Gemini did not return valid JSON.");
+      console.warn("[DeepSeek] Raw response:", rawText);
+      throw new Error("DeepSeek did not return valid JSON.");
     }
 
     const normalized = normalizeAiResponse(parsed);
@@ -1215,7 +1211,7 @@ async function translateWithAi() {
 }
 
 /* =========================================================
-   GEMINI RESULT RENDERING
+   DEEPSEEK RESULT RENDERING
    ========================================================= */
 
 function renderAiResults(data) {
@@ -1666,7 +1662,7 @@ function bindAiEvents() {
   const clearApiKeyBtn = byId("clear-api-key-btn");
   const aiPrompt = byId("ai-prompt");
   const apiOverlay = byId("api-key-overlay");
-  const apiInput = byId("gemini-api-key");
+  const apiInput = byId("deepseek-api-key");
 
   if (translateBtn) {
     translateBtn.addEventListener("click", translateWithAi);
@@ -1677,11 +1673,11 @@ function bindAiEvents() {
   }
 
   if (saveApiKeyBtn) {
-    saveApiKeyBtn.addEventListener("click", saveGeminiApiKeyToStorage);
+    saveApiKeyBtn.addEventListener("click", saveDeepSeekApiKeyToStorage);
   }
 
   if (clearApiKeyBtn) {
-    clearApiKeyBtn.addEventListener("click", clearGeminiApiKeyFromStorage);
+    clearApiKeyBtn.addEventListener("click", clearDeepSeekApiKeyFromStorage);
   }
 
   if (apiOverlay) {
@@ -1694,7 +1690,7 @@ function bindAiEvents() {
     apiInput.addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        saveGeminiApiKeyToStorage();
+        saveDeepSeekApiKeyToStorage();
       }
     });
   }
@@ -1758,9 +1754,9 @@ window.addEventListener("DOMContentLoaded", function () {
   connectSocket();
   
 
-  if (hasGeminiApiKey()) {
+  if (hasDeepSeekApiKey()) {
   } else {
-    setAiStatus("No Gemini API key configured yet.", "info");
+    setAiStatus("No DeepSeek API key configured yet.", "info");
   }
 });
 )rawliteral";

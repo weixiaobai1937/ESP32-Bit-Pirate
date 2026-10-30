@@ -254,7 +254,7 @@ void HelpShell::cmdDio() {
         "pulldown <gpio>       - Set pin pulldown",
         "pulse <gpio> <us>     - Send pulse on pin",
         "servo <gpio> <angle>  - Set servo angle",
-        "pwm <gpio> [frq duty%]- Set PWM on pin",
+        "pwm <gpio> [frq duty%] - Set PWM on pin",
         "toggle <gpio> <ms>    - Toggle pin periodically",
         "measure <gpio> [ms]   - Calculate frequency",
         "jam <gpio> [min max]  - Random high/low states",

@@ -14,6 +14,7 @@ inline void resetGlobalState() {
     state.setTerminalIp("0.0.0.0");
     state.setTerminalMode(TerminalTypeEnum::SerialPort);
     state.setCurrentMode(ModeEnum::HIZ);
+    state.setLanguage(LanguageEnum::English);
 
     state.setSpiCSPin(12);
     state.setSpiCLKPin(40);

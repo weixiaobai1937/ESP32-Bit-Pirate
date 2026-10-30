@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include "Enums/InfraredProtocolEnum.h"
+#include "Enums/LanguageEnum.h"
 #include "Enums/ModeEnum.h"
 #include "Enums/TerminalTypeEnum.h"
 #include <array>
@@ -47,6 +48,9 @@ private:
 
     // Terminal transmission mode
     TerminalTypeEnum terminalMode = TerminalTypeEnum::SerialPort;
+
+    // User interface language
+    LanguageEnum language = LanguageEnum::English;
 
     //  Current selected mode
     ModeEnum currentMode = ModeEnum::HIZ;
@@ -240,6 +244,10 @@ public:
     // Terminal transmission mode
     TerminalTypeEnum getTerminalMode() const { return terminalMode; }
     void setTerminalMode(TerminalTypeEnum mode) { terminalMode = mode; }
+
+    // UI language
+    LanguageEnum getLanguage() const { return language; }
+    void setLanguage(LanguageEnum value) { language = value; }
 
     // Current Mode
     ModeEnum getCurrentMode() const { return currentMode; }

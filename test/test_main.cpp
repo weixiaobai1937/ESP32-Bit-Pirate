@@ -86,6 +86,7 @@
 #include "Managers/test_CommandLineManager.cpp"
 #include "Managers/test_UserInputManager.cpp"
 #include "Services/test_UartSnifferService.cpp"
+#include "Services/test_LanguageService.cpp"
 #include "Abstracts/test_ANetworkController.cpp"
 #include "Controllers/test_CanController.cpp"
 #include "Controllers/test_DioController.cpp"
@@ -151,6 +152,7 @@ int main(int, char**) {
     runCommandLineManagerTests();
     runUserInputManagerTests();
     runUartSnifferServiceTests();
+    runLanguageServiceTests();
     runANetworkControllerTests();
     runCanControllerTests();
     runDioControllerTests();

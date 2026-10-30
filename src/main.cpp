@@ -2,6 +2,7 @@
 
 #include <Views/SerialTerminalView.h>
 #include <Views/WebTerminalView.h>
+#include <Views/LocalizedTerminalView.h>
 #include <Boards/Common/Views/NoScreenDeviceView.h>
 #include <Inputs/SerialTerminalInput.h>
 #include <Inputs/WebTerminalInput.h>
@@ -27,6 +28,7 @@
 #include <Servers/WebSocketServer.h>
 #include <Servers/DnsServer.h>
 #include <Services/NvsService.h>
+#include <Services/LanguageService.h>
 #include <Managers/BootMemoryManager.h>
 #include <Services/UtilityService.h>
 #include <Selectors/HorizontalSelector.h>
@@ -184,6 +186,10 @@ void setup() {
     UtilityService utilityService;
     GlobalState& state = GlobalState::getInstance();
 
+    // Restore the user's UI language before any terminal is created.
+    NvsService languageNvsService;
+    LanguageService::load(languageNvsService);
+
     // Select the terminal type
     HorizontalSelector selector(deviceView, deviceInput, utilityService);
     TerminalTypeConfigurator configurator(selector);
@@ -208,6 +214,7 @@ void setup() {
             // Serial View/Input
             SerialTerminalView serialView(hostSerial);
             SerialTerminalInput serialInput(hostSerial);
+            LocalizedTerminalView localizedView(serialView);
 
             // Baudrate
             auto baud = std::to_string(state.getSerialTerminalBaudRate());
@@ -215,7 +222,7 @@ void setup() {
 
             // Build the provider for serial type and run the dispatcher loop
             // too big to fit on the stack anymore, allocated on the heap
-            DependencyProvider* provider = new DependencyProvider(serialView, deviceView, serialInput, deviceInput,
+            DependencyProvider* provider = new DependencyProvider(localizedView, deviceView, serialInput, deviceInput,
                                                                   littleFsService);
             ActionDispatcher dispatcher(*provider);
             dispatcher.setup(terminalType, baud);
@@ -227,15 +234,18 @@ void setup() {
             // Configure Server
             httpd_handle_t server = nullptr;
             httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+            // 3 sockets are reserved internally; desktop browsers open several parallel connections.
+            config.max_open_sockets = 13;
             config.lru_purge_enable = true;
-            config.recv_wait_timeout = 11;
-            config.send_wait_timeout = 11;
 
             // DNS server for captive portal if AP mode
             if (terminalType == TerminalTypeEnum::WiFiAp) {
                 DnsServer::configureCaptiveDns(config);
                 DnsServer::startCaptiveDns(webIp);
             }
+
+            // 8 HTTP routes + /ws + captive portal handler.
+            config.max_uri_handlers = 10;
 
             if (httpd_start(&server, &config) != ESP_OK) {
                 return;
@@ -248,6 +258,7 @@ void setup() {
             // Web View/Input
             WebTerminalView webView(wsServer);
             WebTerminalInput webInput(wsServer);
+            LocalizedTerminalView localizedView(webView);
             deviceView.loading();
             delay(7000); // let the server begin
 
@@ -260,7 +271,7 @@ void setup() {
 
             // Build the provider for webui type and run the dispatcher loop
             // too big to fit on the stack anymore, allocated on the heap
-            DependencyProvider* provider = new DependencyProvider(webView, deviceView, webInput, deviceInput,
+            DependencyProvider* provider = new DependencyProvider(localizedView, deviceView, webInput, deviceInput,
                                                                   littleFsService);
             ActionDispatcher dispatcher(*provider);
 
@@ -275,11 +286,12 @@ void setup() {
             CardputerTerminalView standaloneView; // cardputer screen as terminal
             CardputerInput standaloneInput; // cardputer keyboard for command input
             standaloneView.initialize();
+            LocalizedTerminalView localizedView(standaloneView);
             CardputerDeviceView deviceView; // used for logic analyzer only
             DefaultInput deviceInput; // the G0 button of the cardputer
 
             // Build the provider for cardputer standalone and run the dispatcher loop
-            DependencyProvider* provider = new DependencyProvider(standaloneView, deviceView, standaloneInput, deviceInput,
+            DependencyProvider* provider = new DependencyProvider(localizedView, deviceView, standaloneInput, deviceInput,
                                                                   littleFsService);
             ActionDispatcher dispatcher(*provider);
             dispatcher.setup(terminalType, "standalone");

@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <esp_chip_info.h>
+#include "Services/LanguageService.h"
 
 SysInfoShell::SysInfoShell(ITerminalView& tv,
                            IInput& in,
@@ -10,7 +11,8 @@ SysInfoShell::SysInfoShell(ITerminalView& tv,
                            ArgTransformer& at,
                            SystemService& sys,
                            LittleFsService& littleFsService,
-                           WifiService& wifi)
+                           WifiService& wifi,
+                           INvsService& nvs)
     : terminalView(tv)
     , terminalInput(in)
     , deviceView(deviceView)
@@ -18,7 +20,8 @@ SysInfoShell::SysInfoShell(ITerminalView& tv,
     , argTransformer(at)
     , systemService(sys)
     , littleFsService(littleFsService)  
-    , wifiService(wifi) {}
+    , wifiService(wifi)
+    , nvsService(nvs) {}
 
 void SysInfoShell::run() {
     bool loop = true;
@@ -39,7 +42,8 @@ void SysInfoShell::run() {
             case 8: cmdDebugLogs(); break;
             case 9: cmdReboot(); break;
             case 10: cmdUsbBootloaderMode(); break;
-            case 11: // Exit
+            case 11: cmdLanguage(); break;
+            case 12: // Exit
             default:
                 loop = false;
                 break;
@@ -54,17 +58,17 @@ void SysInfoShell::cmdSummary() {
     terminalView.println("Model         : " + systemService.getChipModel());
     terminalView.println("Uptime        : " + std::to_string(systemService.getUptimeSeconds()) + " s");
     terminalView.println("Temperature   : " + systemService.getInternalTemperatureCStr() + " °C");
-    terminalView.println("Screen        : " + std::to_string((deviceView.getBrightness() * 100) / 255) + " % bright");
+    terminalView.println("Screen        : " + std::to_string((deviceView.getBrightness() * 100) / 255) + " % " + LanguageService::tr("bright"));
     
     const int rr = systemService.getResetReason();
-    terminalView.println(std::string("Reset reason  : ") + resetReasonToStr(rr) + " (" + std::to_string(rr) + ")");
+    terminalView.println(std::string("Reset reason  : ") + LanguageService::tr(resetReasonToStr(rr)) + " (" + std::to_string(rr) + ")");
     
     terminalView.println("Stack total   : " + std::to_string(systemService.getStackTotal()   / 1024) + " KB");
     terminalView.println("Heap total    : " + std::to_string(systemService.getHeapTotal()   / 1024) + " KB");
     terminalView.println("PSRAM total   : " + std::to_string(systemService.getPsramTotal()  / 1024) + " KB");
     terminalView.println("Flash total   : " + std::to_string(systemService.getFlashSizeBytes() / 1024) + " KB");
 
-    terminalView.println("Firmware      : " + (std::string("version ") + state.getVersion()));
+    terminalView.println("Firmware      : " + std::string(LanguageService::tr("version")) + " " + state.getVersion());
     terminalView.println("Build date    : " + std::string(__DATE__) + " " + std::string(__TIME__));
     terminalView.println("Infrared      : " + systemService.getInfraredBackend());
     terminalView.println("IDF version   : " + systemService.getIdfVersion());
@@ -161,7 +165,7 @@ void SysInfoShell::cmdScreen() {
 
     // Normalize to percent
     uint8_t percent = static_cast<uint8_t>((brightness * 100) / 255);
-    terminalView.println("Brightness : current " + std::to_string(percent) + " %");
+    terminalView.println("Brightness : " + std::string(LanguageService::tr("current")) + " " + std::to_string(percent) + " %");
 
     // Ask user new value
     uint8_t newPercent = userInputManager.readValidatedUint8(
@@ -289,7 +293,7 @@ void SysInfoShell::cmdNet() {
 
     terminalView.println("Mode         : " + std::string(wifiService.wifiModeToStr(wifiService.getWifiModeRaw())));
     terminalView.println("Status       : " + std::string(wifiService.wlStatusToStr(status)));
-    terminalView.println("Prov enabled : " + std::string(wifiService.isProvisioningEnabled() ? "Yes" : "No"));
+    terminalView.println("Prov enabled : " + std::string(LanguageService::tr(wifiService.isProvisioningEnabled() ? "Yes" : "No")));
 }
 
 void SysInfoShell::cmdReboot(bool hard) {
@@ -312,6 +316,24 @@ void SysInfoShell::cmdUsbBootloaderMode() {
         deviceView.topBar("USB BOOT MODE", false, false);
         systemService.rebootToBootloader();
     }
+}
+
+void SysInfoShell::cmdLanguage() {
+    static const char* languages[] = {"English", "中文"};
+    const int current = state.getLanguage() == LanguageEnum::Chinese ? 1 : 0;
+    const int choice = userInputManager.readValidatedChoiceIndex(
+        "Select language",
+        languages,
+        sizeof(languages) / sizeof(languages[0]),
+        current
+    );
+    if (choice < 0) return;
+
+    LanguageService::save(
+        nvsService,
+        choice == 1 ? LanguageEnum::Chinese : LanguageEnum::English
+    );
+    terminalView.println("Language saved.");
 }
 
 void SysInfoShell::cmdDebugLogs() {
