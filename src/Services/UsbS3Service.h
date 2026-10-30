@@ -61,6 +61,9 @@ public:
     void systemWake();
     void systemPowerOff(uint32_t holdMs = 10);
 
+    // CMSIS-DAP/WinUSB vendor interface (requires BITPIRATE_USB_DAP build)
+    bool dapBegin();
+
     // Config
     void configure(const char* productStr, const char* manufacturerStr, const char* serialStr, uint16_t vid, uint16_t pid, const char* webUSBString);
     void reset();

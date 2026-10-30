@@ -87,6 +87,7 @@
 #include "Managers/test_UserInputManager.cpp"
 #include "Services/test_UartSnifferService.cpp"
 #include "Services/test_LanguageService.cpp"
+#include "Services/test_CmsisDapProtocol.cpp"
 #include "Abstracts/test_ANetworkController.cpp"
 #include "Controllers/test_CanController.cpp"
 #include "Controllers/test_DioController.cpp"
@@ -153,6 +154,7 @@ int main(int, char**) {
     runUserInputManagerTests();
     runUartSnifferServiceTests();
     runLanguageServiceTests();
+    runCmsisDapProtocolTests();
     runANetworkControllerTests();
     runCanControllerTests();
     runDioControllerTests();

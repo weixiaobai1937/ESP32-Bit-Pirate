@@ -70,6 +70,9 @@ private:
     // List dedicated USB adapter modes
     void handleAdapters();
 
+    // Start the CMSIS-DAP/WinUSB vendor interface
+    void handleDap();
+
     // Handle system control (sleep/wake/poweroff)
     void handleSysCtrl(const TerminalCommand& cmd);
 

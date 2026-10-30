@@ -309,6 +309,7 @@ void HelpShell::cmdUsb() {
         "sysctrl [action]     - Hardware control actions",
         "host                 - Connect device to ESP32",
         "adapters             - Dedicated USB adapters",
+        "dap                  - Start CMSIS-DAP/WinUSB interface",
         "reset                - Reset interface",
         "config               - Configure settings"
     };

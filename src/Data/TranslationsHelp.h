@@ -202,6 +202,7 @@ inline constexpr TranslationEntry helpTranslations[] = {
     {"Spoof AP MAC", "伪造 AP MAC"},
     {"Spoof Station MAC", "伪造 Station MAC"},
     {"Spoof mac address", "伪造 MAC 地址"},
+    {"Start CMSIS-DAP/WinUSB interface", "启动 CMSIS-DAP/WinUSB 接口"},
     {"Start keyboard bridge", "启动键盘桥接"},
     {"State of the CAN controller", "CAN 控制器状态"},
     {"Swap RX and TX GPIOs", "交换 RX 和 TX 的 GPIO"},

@@ -41,6 +41,8 @@ public:
     virtual void systemWake() = 0;
     virtual void systemPowerOff(uint32_t holdMs = 10) = 0;
 
+    virtual bool dapBegin() = 0;
+
     virtual void configure(const char* productStr,
                            const char* manufacturerStr,
                            const char* serialStr,

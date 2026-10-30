@@ -164,6 +164,22 @@ void test_host_can_be_cancelled_or_started_and_stopped_immediately() {
     TEST_ASSERT_TRUE(started.view.contains("USB Host: Stopped by user"));
 }
 
+void test_dap_starts_vendor_interface() {
+    UsbS3ControllerFixture fixture;
+
+    fixture.controller.handleCommand(TerminalCommand("dap"));
+
+    TEST_ASSERT_EQUAL_UINT32(1, fixture.usb.configureCalls.size());
+    TEST_ASSERT_EQUAL_UINT32(1, fixture.usb.dapBeginCalls);
+    TEST_ASSERT_TRUE(fixture.view.contains("CMSIS-DAP"));
+
+    UsbS3ControllerFixture unavailable;
+    unavailable.usb.dapBeginResult = false;
+    unavailable.controller.handleCommand(TerminalCommand("dap"));
+
+    TEST_ASSERT_TRUE(unavailable.view.contains("Not available"));
+}
+
 void test_adapter_reset_config_and_help_paths() {
     UsbS3ControllerFixture adapter;
     adapter.controller.handleCommand(TerminalCommand("adapter"));
@@ -208,5 +224,6 @@ void runUsbS3ControllerTests() {
     RUN_TEST(test_gamepad_sends_known_button_and_rejects_unknown_button);
     RUN_TEST(test_system_control_sleep_wake_and_poweroff);
     RUN_TEST(test_host_can_be_cancelled_or_started_and_stopped_immediately);
+    RUN_TEST(test_dap_starts_vendor_interface);
     RUN_TEST(test_adapter_reset_config_and_help_paths);
 }

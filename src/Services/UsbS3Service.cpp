@@ -411,6 +411,14 @@ bool UsbS3Service::isSystemControlActive() const {
     return systemControlActive;
 }
 
+bool UsbS3Service::dapBegin() {
+#if defined(BITPIRATE_USB_DAP) && BITPIRATE_USB_DAP
+    return USB.begin();
+#else
+    return false;
+#endif
+}
+
 void UsbS3Service::systemSleep() {
     if (!systemControlActive) systemControlBegin();
 

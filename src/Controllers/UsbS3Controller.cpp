@@ -37,6 +37,7 @@ void UsbS3Controller::handleCommand(const TerminalCommand& cmd) {
     else if (cmd.getRoot() == "sysctrl") handleSysCtrl(cmd);
     else if (cmd.getRoot() == "host") handleHost();
     else if (cmd.getRoot() == "adapter" || cmd.getRoot() == "adapters") handleAdapters();
+    else if (cmd.getRoot() == "dap") handleDap();
     else if (cmd.getRoot() == "reset") handleReset();
     else if (cmd.getRoot() == "config") handleConfig();
     else handleHelp();
@@ -499,6 +500,25 @@ void UsbS3Controller::handleHost() {
     // TODO: usbService.usbHostEnd(); can't be called because it will stop the host 
     // and make the USB interface instable, find a way to switch back to default mode
     terminalView.println("\nUSB Host: Stopped by user.\n");
+}
+
+/* DAP */
+void UsbS3Controller::handleDap() {
+    usbService.configure(
+        state.getUSBProductString(),
+        state.getUSBManufacturerString(),
+        state.getUSBSerialString(),
+        state.getUSBVid(),
+        state.getUSBPid(),
+        state.getWebUSBString()
+    );
+
+    if (usbService.dapBegin()) {
+        terminalView.println("USB DAP: CMSIS-DAP v2 / WinUSB interface started.");
+        terminalView.println("USB DAP: Run 'pyocd list' on the host.");
+    } else {
+        terminalView.println("USB DAP: Not available in this build.");
+    }
 }
 
 /* Adapters */

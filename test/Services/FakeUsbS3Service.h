@@ -63,6 +63,8 @@ public:
     uint32_t systemWakeCalls = 0;
     uint32_t systemPowerOffCalls = 0;
     uint32_t lastPowerOffHoldMs = 0;
+    uint32_t dapBeginCalls = 0;
+    bool dapBeginResult = true;
     uint32_t resetCalls = 0;
 
     bool isKeyboardActive() const override { return keyboardActive; }
@@ -142,6 +144,11 @@ public:
     void systemPowerOff(uint32_t holdMs = 10) override {
         ++systemPowerOffCalls;
         lastPowerOffHoldMs = holdMs;
+    }
+
+    bool dapBegin() override {
+        ++dapBeginCalls;
+        return dapBeginResult;
     }
 
     void configure(const char* productStr,
